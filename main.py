@@ -20,11 +20,33 @@
 #PATHS ou rotas - caminhos que vamos acessar para cada metodo
 #Querry strings - parametros que passamos na URL
 
-from fastapi import FastAPI, HTTPException
+#documentacao swagger -> Documentar os endpoints da nossa aplicacao (da nossa API)
+
+# Aceesa minha documetacao swagger nesse endpoint -> ........
+
+from fastapi import FastAPI, HTTPException, Depends
+from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from pydantic import BaseModel
 from typing import Optional
+import secrets
+import os
 
-app = FastAPI()
+
+app = FastAPI(
+    title="API de livros",
+    description="API para gerenciar catalogo de livros",
+    version="1.0.0",
+    contact={
+        "name":"Guilherme Muniz",
+        "email":"muniz_157@outlook.com"
+    }
+)
+
+USER = "admin"
+PASSWORD = "admin"
+
+
+security = HTTPBasic()
 
 dicionario_livros = {}
 
@@ -33,9 +55,20 @@ class Livro(BaseModel):
     autor_livro: str
     ano_livro: int
 
+def autenticar_meu_user(credentials:HTTPBasicCredentials = Depends(security)):
+   is_username_correct = secrets.compare_digest(credentials.username, USER)
+   is_password_correct = secrets.compare_digest(credentials.password, PASSWORD)
+
+   if not (is_username_correct and is_password_correct):
+       raise HTTPException(
+           status_code = 401,
+           detail= "Usuario ou senha incorretos",
+           headers={"WWW-Autheticate":"Basic"}
+       )
+
 
 @app.get("/livros")
-def get_livros():
+def get_livros(credentials: HTTPBasicCredentials = Depends(autenticar_meu_user)):
     if not dicionario_livros:
         return {"message": "Esse livro nao existe!"}
     else:
@@ -50,7 +83,7 @@ def get_livros():
 #Nao mais .dict() e agora .model_dump()
 
 @app.post("/adiciona")
-def post_livros(id_livro: int, livro: Livro):
+def post_livros(id_livro: int, livro: Livro, credentials: HTTPBasicCredentials = Depends(autenticar_meu_user) ):
     if id_livro in dicionario_livros:
         raise HTTPException(status_code=400, detail="Esse livro ja esta cadastrado.")
     else:
@@ -58,7 +91,7 @@ def post_livros(id_livro: int, livro: Livro):
         return {"message": " O livro foi adiconado com sucesso"}
 
 @app.put("/atualiza/{id_livro}")
-def put_livros(id_livro: int, livro: Livro):
+def put_livros(id_livro: int, livro: Livro, credentials: HTTPBasicCredentials = Depends(autenticar_meu_user)):
     meu_livro = dicionario_livros.get(id_livro)
     if not meu_livro:
         raise HTTPException(status_code = 404, detail="Esse livro nao foi encontrado")
@@ -67,9 +100,9 @@ def put_livros(id_livro: int, livro: Livro):
         return {"message": "As informacoes do seu livro foram atualizadas com sucesso!"}
 
 @app.delete("/deletar/{id_livros}")
-def delete_livro(id_livros: int):
+def delete_livro(id_livros: int, credentials: HTTPBasicCredentials = Depends(autenticar_meu_user)):
     if id_livros not in dicionario_livros:
-        raise HTTPException(status_code = 404, detail= "Esse livro nao foi encontado")
+        raise HTTPException(status_code = 400, detail= "Esse livro nao foi encontado")
     else:
         del dicionario_livros[id_livros]
 
