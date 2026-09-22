@@ -31,7 +31,7 @@ dicionario_livros = {}
 class Livro(BaseModel):
     nome_livro: str
     autor_livro: str
-    ano_livro: str
+    ano_livro: int
 
 
 @app.get("/livros")
@@ -47,12 +47,14 @@ def get_livros():
 #autor do livro
 #ano de lancamento do livro
 
+#Nao mais .dict() e agora .model_dump()
+
 @app.post("/adiciona")
 def post_livros(id_livro: int, livro: Livro):
     if id_livro in dicionario_livros:
         raise HTTPException(status_code=400, detail="Esse livro ja esta cadastrado.")
     else:
-        dicionario_livros[id_livro] = livro.__dict__()
+        dicionario_livros[id_livro] = livro.model_dump()
         return {"message": " O livro foi adiconado com sucesso"}
 
 @app.put("/atualiza/{id_livro}")
@@ -61,7 +63,7 @@ def put_livros(id_livro: int, livro: Livro):
     if not meu_livro:
         raise HTTPException(status_code = 404, detail="Esse livro nao foi encontrado")
     else:
-        meu_livro[id_livro] = livro.__dict__
+        dicionario_livros[id_livro] = livro.model_dump()
         return {"message": "As informacoes do seu livro foram atualizadas com sucesso!"}
 
 @app.delete("/deletar/{id_livros}")
