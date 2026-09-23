@@ -1,0 +1,21 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "sqlproj: Build ProjetoSQL",
+			"type": "process",
+			"command": "dotnet",
+			"args": [
+				"build",
+				"c:/Users/Muniz/OneDrive/Área de Trabalho/Back-End EBAC - FASTapi (EXEMPLO)/ProjetoSQL/ProjetoSQL.sqlproj"
+			],
+			"problemMatcher": "$sqlproj-problem-matcher",
+			"isBackground": true,
+			"group": {
+				"kind": "build",
+				"isDefault": false
+			},
+			"detail": "Compila o ProjetoSQL projeto SQL"
+		}
+	]
+}
