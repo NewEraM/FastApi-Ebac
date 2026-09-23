@@ -68,12 +68,28 @@ def autenticar_meu_user(credentials:HTTPBasicCredentials = Depends(security)):
 
 
 @app.get("/livros")
-def get_livros(credentials: HTTPBasicCredentials = Depends(autenticar_meu_user)):
+def get_livros(page: int = 1, limit: int = 10,  credentials: HTTPBasicCredentials = Depends(autenticar_meu_user)):
+    if page < 1 or limit < 1:
+        raise HTTPException(
+            status_code =400, detail="Page ou limit estao com valores invalidos"
+        )
     if not dicionario_livros:
-        return {"message": "Esse livro nao existe!"}
-    else:
-        return {"livros": dicionario_livros}
+        return {"message":"Nao existe nenhum livro!!"}
 
+    start = (page - 1)  * limit
+    end = start + limit
+
+    livros_paginados = [
+        {"id": id_livro, "nome_livro": livro_data["nome_livro"], "autor_livro": livro_data["autor_livro"], "ano_livro": livro_data["ano_livro"]}
+        for id_livro, livro_data in list(dicionario_livros.items())[start:end]
+    ]
+
+    return [
+        "page", page,
+        "limit", limit,
+        "total", len(dicionario_livros),
+        "livros", livros_paginados
+    ]
 
 #id do livro
 #nome do livros
