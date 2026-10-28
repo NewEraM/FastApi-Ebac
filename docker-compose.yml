@@ -1,0 +1,39 @@
+version: "3.8"
+
+services:
+  app:
+    build: .
+    container_name: livros-api
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+    env_file:
+      - .env
+    command: ["poetry", "run", "uvicorn","main:app","--host", "0.0.0.0", "--port", "8000" ]
+
+  redis:
+    image: redis:7-alpine
+    container_name: livros-redis
+    ports:
+      - "6379:6379"
+
+  celery:
+    build: .
+    container_name: livros-celery
+    command:
+      - poetry
+      - run
+      - celery
+      - -A
+      - celery_app:celery_app
+      - worker
+      - --loglevel=info
+      - --include=tasks
+    volumes:
+      - .:/app
+    env_file:
+      - .env
+    depends_on:
+      - redis
+      
