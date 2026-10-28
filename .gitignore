@@ -1,1 +1,16 @@
+
+# Ambiente virtual Python
+.venv/
+venv/
+env/
+
+# Cache e arquivos Python
+__pycache__/
+*.py[cod]
+
+# Variáveis de ambiente e segredos
 .env
+.env.*
+
+# Arquivos locais de bancos de dados SQLite
+*.db

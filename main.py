@@ -36,6 +36,7 @@ from fastapi import BackgroundTasks
 from tasks import fatorial, somar
 from celery_app import celery_app
 from celery.result import AsyncResult
+from kafka_producer import enviar_evento
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -205,6 +206,7 @@ def debug_redis():
         livros.append({"chave" : chave, "valor": json.loads(valor), "ttl": ttl})
     return livros
 
+#endpoints livros
 
 @app.get("/livros") #GET atualizado usando o metodo sqlalchemy (banco de dados)
 def get_livros(
@@ -266,6 +268,11 @@ async def post_livros(livro: Livro, db: Session = Depends(sessao_db), credential
 
     salvar_livro_redis(novo_livro.id, livro)
 
+    enviar_evento("livros_eventos",{
+        "acao": "criar",
+        "livro": livro.model_dump()
+    })
+    
     return {"message": "O livro foi criado com sucesso!"}
 
 @app.put("/atualiza/{id_livro}")#PUT atualizado usando o metodo sqlalchemy (banco de dados)
